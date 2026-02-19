@@ -1,60 +1,86 @@
-# 🖐️ Lazy Scroller - The Ultimate Hand Gesture Control
+# 🖐️ HandGesture Studio
 
-**Scroll like a Jedi. Because clicking is too much work.**
+**A Next-Gen Hand Tracking Interface for Creativity & Control**
 
-## 🧐 What is this?
-Lazy Scroller is a Python application that lets you scroll through websites, documents, and social media feeds using just your hand gestures. No mouse, no trackpad, just you waving at your webcam.
-
-It uses computer vision to track your hand and translates your movements into smooth scrolling actions.
-
-## 🎯 Who is this for?
-- **Lazy People**: Why move your arm to the mouse when you can just twitch your fingers?
-- **Show-offs**: Impress your friends by controlling your computer like Tony Stark.
-- **Multitaskers**: Eating a burger? Scroll with your clean hand while holding the burger with the other.
-
-## 🛠️ How it's made
-This project is built using:
-- **Python**: The magic behind the curtain.
-- **OpenCV**: Eyes of the operation (Webcam access).
-- **MediaPipe**: The brain that understands hands (Google's ML solution).
-- **PyAutoGUI**: The worker that actually scrolls the screen.
-
-## ⚡ Quick Start (Windows)
-**Don't want to type commands?**
-1. Double-click the **`run_app.bat`** file.
-2. It will automatically check for changes, install what's needed, and start the app.
-3. Enjoy!
-
-## 🚀 How to use it (Manual Setup)
-
-Want to run this on your machine? Follow these steps:
-
-### Prerequisites
-Make sure you have Python installed.
-
-### 1. Clone or Download
-Download this folder to your computer.
-
-### 2. Install Dependencies
-Open your terminal/command prompt in the project folder and run:
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Run it!
-Make sure your webcam is ready, then run:
-```bash
-python Scrollerr.py
-```
-
-### 4. Controls
-- **Cursor Active (Hand Open)**: Spread fingers wide (> 100 distance) to move cursor.
-- **Neutral / Reset (Relaxed)**: Relax fingers (Semi-open) to stop cursor. Use this to move your hand back without moving the mouse.
-- **Scroll Mode (Pinch)**: Pinch Thumb + Index (< 40 distance) to Scroll.
-- **Scroll Up/Down/Left/Right**: Move your hand while pinching to scroll in any direction.
-- **Click (Tap)**: Quickly Pinch and Release (like a tap) to Click. 
-- **Double Click**: Tap twice quickly. (Cursor freezes for 1 second after a click to make this easier).
-- **'q' Key**: Quit the app.
+HandGesture Studio is a modern web-based application that transforms your hand movements into digital actions. Draw in the air, manipulate 3D objects, or control your computer—all without touching a mouse or keyboard.
 
 ---
-*Made with ❤️ and Python.*
+
+## ✨ Features
+
+### 1. **Air Drawing**
+- A pristine, infinite canvas for freehand drawing.
+- **Gesture**: Pinch your index finger and thumb to draw. Release to hover.
+- **Tech**: HTML5 Canvas powered by real-time hand tracking.
+
+### 2. **Hand Scroller (Utility Mode)**
+- Control your entire OS with simple gestures.
+- **Scroll**: Move your hand up/down to scroll content.
+- **Click**: Quick pinch gesture to click.
+- **Cursor**: Open hand to move the mouse cursor.
+
+### 3. **3D Drawing**
+- Interact with a 3D environment.
+- **Visuals**: Powered by Three.js for immersive graphics.
+- **Control**: Rotate and manipulate objects in 3D space.
+
+---
+
+## ⚡ Quick Start (Windows)
+
+We've made it incredibly easy to start. No complicated installation required (if Python is installed).
+
+1.  **Double-click** the `run_handgesture.bat` file.
+2.  The application will launch in your default web browser at `http://localhost:8000`.
+3.  Grant camera permissions when prompted.
+
+---
+
+## �️ Usage Guide
+
+### The Hub
+The main menu allows you to switch between modes seamlessly. Just click on the card for the mode you want to enter.
+
+### Controls
+| Mode | Gesture | Action |
+| :--- | :--- | :--- |
+| **All** | **Open Hand** | Move Cursor / Tracking Active |
+| **Air Draw** | **Pinch (Index+Thumb)** | Draw on Canvas |
+| **Scroller** | **Pinch & Move Up/Down** | Scroll Page |
+| **Scroller** | **Quick Pinch (Tap)** | Left Click |
+| **3D Draw** | **Pinch & Rotate** | Rotate 3D Object |
+
+---
+
+## 🔧 Technical Details
+
+This project uses a hybrid architecture:
+-   **Backend**: Python (FastAPI) handles the heavy lifting of Computer Vision using MediaPipe.
+-   **Frontend**: React + Three.js + TailwindCSS (served via CDN) for a responsive, modern UI.
+-   **Communication**: WebSocket connection streams hand landmarks in real-time (60 FPS).
+
+### Requirements
+-   Python 3.8+
+-   Webcam
+
+### Manual Installation
+If you prefer identifying the magic yourself:
+
+```bash
+# 1. Install Dependencies
+pip install fastapi uvicorn websockets mediapipe opencv-python pyautogui
+
+# 2. Run the Server
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+---
+
+## 📂 Legacy Version
+ Looking for the original standalone Python script? It's still here!
+-   Run `python Scrollerr.py` to use the legacy version.
+-   See `OLD_README.md` (if renamed) or previous commits for details.
+
+---
+
+*Built with ❤️ using Python & React.*
