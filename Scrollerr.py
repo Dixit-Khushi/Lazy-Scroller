@@ -7,6 +7,9 @@ import urllib.request
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
+# Globally disable PyAutoGUI failsafe so moving to corners doesn't crash the program
+pyautogui.FAILSAFE = False
+
 # 1. Download Model if missing
 model_path = 'hand_landmarker.task'
 if not os.path.exists(model_path):
@@ -72,6 +75,10 @@ while cap.isOpened():
     # Visualization (Custom drawing needed as mp_drawing works with proto, result is object)
     # We will just draw a circle on the tip for simplicity
     
+    if not detection_result.hand_landmarks:
+        # Hand left frame — reset cursor smoothing so next appearance doesn't teleport
+        prev_screen_x, prev_screen_y = None, None
+
     if detection_result.hand_landmarks:
         for hand_landmarks in detection_result.hand_landmarks:
             # Get Index Finger Tip (8) and Thumb Tip (4)
@@ -124,49 +131,47 @@ while cap.isOpened():
                         
                     else:
                         # CURSOR MOVEMENT (Hand Fully Open, > 100px)
-                        cv2.putText(frame, "CURSOR ACTIVE", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                        
-                        # Map Index Finger coordinates to Screen
+                        cv2.putText(frame, "CURSOR ACTIVE", (50, 50),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
                         screen_w, screen_h = pyautogui.size()
-                        
-                        # Optional: Add margins to make reaching edges easier
-                        margin = 0.1 # 10% margin on sides
-                        
-                        mapped_x = (index_tip.x - margin) / (1 - 2*margin)
-                        mapped_y = (index_tip.y - margin) / (1 - 2*margin)
-                        
-                        mapped_x = max(0, min(1, mapped_x))
-                        mapped_y = max(0, min(1, mapped_y))
-                        
+
+                        # Positive margin = central part of camera maps to full screen.
+                        # This means you won't need to reach the very edge of the camera view
+                        # to reach the edge of your screen. 20% horizontal margin, 25% vertical margin.
+                        margin_x = 0.20
+                        margin_y = 0.25  # Extra slack for bottom taskbar and top close buttons
+
+                        mapped_x = (index_tip.x - margin_x) / (1 - 2 * margin_x)
+                        mapped_y = (index_tip.y - margin_y) / (1 - 2 * margin_y)
+
+                        mapped_x = max(0.0, min(1.0, mapped_x))
+                        mapped_y = max(0.0, min(1.0, mapped_y))
+
                         target_x = int(mapped_x * screen_w)
                         target_y = int(mapped_y * screen_h)
-                        
-                        # FAILSAFE: Disable corner failsafe effectively
-                        pyautogui.FAILSAFE = False 
-                        
-                        # Smoothing (Weighted Average)
+
+                        # FIX TELEPORT: if hand just appeared, snap directly
+                        # — no smooth slide from old stale position
                         if prev_screen_x is None:
                             prev_screen_x, prev_screen_y = target_x, target_y
-                        
-                        # Dynamic Smoothing: Move faster if distance is large (snap), smoother if small (precision)
-                        dist_move = ((target_x - prev_screen_x)**2 + (target_y - prev_screen_y)**2)**0.5
-                        
-                        # 1. Deadzone: If movement is tiny (jitter), ignore it.
-                        if dist_move < 3:
-                            curr_screen_x, curr_screen_y = prev_screen_x, prev_screen_y
+                            pyautogui.moveTo(target_x, target_y)
                         else:
-                            # 2. Dynamic Alpha: 
-                            # Slow movement -> Low Alpha (High smoothing)
-                            # Fast movement -> High Alpha (Low smoothing, responsive)
-                            
-                            # Base alpha 0.15 is smoother than 0.1 for start, max 0.8 for fast.
-                            alpha = 0.15 + (min(dist_move, 200) / 200) * 0.65
-                            
-                            curr_screen_x = prev_screen_x + (target_x - prev_screen_x) * alpha
-                            curr_screen_y = prev_screen_y + (target_y - prev_screen_y) * alpha
-                        
-                        pyautogui.moveTo(curr_screen_x, curr_screen_y)
-                        prev_screen_x, prev_screen_y = curr_screen_x, curr_screen_y
+                            dist_move = ((target_x - prev_screen_x) ** 2 +
+                                         (target_y - prev_screen_y) ** 2) ** 0.5
+
+                            # Hard deadzone: ignore tiny jitter
+                            if dist_move < 4:
+                                curr_screen_x = prev_screen_x
+                                curr_screen_y = prev_screen_y
+                            else:
+                                # Fixed gentle alpha — no dynamic snap that causes jumps
+                                alpha = 0.18
+                                curr_screen_x = prev_screen_x + (target_x - prev_screen_x) * alpha
+                                curr_screen_y = prev_screen_y + (target_y - prev_screen_y) * alpha
+
+                            pyautogui.moveTo(int(curr_screen_x), int(curr_screen_y))
+                            prev_screen_x, prev_screen_y = curr_screen_x, curr_screen_y
                     
             else:
                 # PINCHED STATE
